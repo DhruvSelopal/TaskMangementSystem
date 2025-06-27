@@ -1,0 +1,3 @@
+C:/Users/acer/Desktop/gitHub/TaskMangementSystem/build/CMakeFiles/soket.dir
+C:/Users/acer/Desktop/gitHub/TaskMangementSystem/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/acer/Desktop/gitHub/TaskMangementSystem/build/CMakeFiles/ZERO_CHECK.dir
