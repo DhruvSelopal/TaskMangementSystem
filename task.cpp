@@ -16,11 +16,20 @@ struct Task {
 
 void to_json(nlohmann::json &j,Task & t){
     j = nlohmann::json{
+        {t.id,{{"id",t.id},
+        {"title",t.title},
+        {"descryption",t.descryption},
+        {"status",t.status}}}
+    };
+}
+void to_json(nlohmann::json &j,Task &t,int val){
+    j = nlohmann::json{
         {"id",t.id},
         {"title",t.title},
         {"descryption",t.descryption},
         {"status",t.status}
     };
 }
+
 
 #endif
