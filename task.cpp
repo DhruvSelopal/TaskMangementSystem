@@ -9,16 +9,16 @@
 struct Task {
     int id;
     std::string title;
-    std::string description;
+    std::string descryption;
     std::string status; // e.g. "todo", "in-progress", "done"
-    Task(int id):id(id),title(""),description(""),status(""){}
+    Task(int id):id(id),title(""),descryption(""),status(""){}
 };
 
 void to_json(nlohmann::json &j,Task & t){
     j = nlohmann::json{
         {"id",t.id},
         {"title",t.title},
-        {"descryption",t.description},
+        {"descryption",t.descryption},
         {"status",t.status}
     };
 }
