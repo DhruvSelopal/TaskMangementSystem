@@ -10,6 +10,32 @@
 class TaskMangment{
 private:
     uWS::App * app;
+    static void parseQuery(std::string_view sv,std::unordered_map<std::string,std::string> &myMap){
+        bool first = true;
+        std::string key,str = "";
+        for(char ch : sv){
+            if(ch == '='){
+                key = str;
+                str = "";
+            }
+            else if(ch == '&'){
+                myMap[key] = str;
+                str = "";
+            }
+            else str += ch;
+        }
+        myMap[key] = str;
+    }
+    static nlohmann::json wrap_task_by_id(const Task &t) {
+    return {
+        {std::to_string(t.id), {
+            {"id", t.id},
+            {"title", t.title},
+            {"descryption", t.descryption},
+            {"status", t.status}
+        }}
+    };
+}
 public:
 
     TaskMangment(uWS::App * app):app(app){}
@@ -25,7 +51,7 @@ public:
                     nlohmann::json j = nlohmann::json::parse(body);
                     Task* t = new Task(id);
                     if(j.contains("title")) t->title = j["title"];
-                    if(j.contains("descryption")) t->descryption = j["descyption"];
+                    if(j.contains("descryption")) t->descryption = j["descryption"];
                     if(j.contains("status")) t->status = j["status"];
                     db[id] = t;
                     id++;
@@ -41,7 +67,7 @@ public:
             });
             int id = std::stoi(std::string(req->getParameter(0)));
             nlohmann::json j;
-            to_json(j,*(db[id]),1);
+            to_json(j,*(db[id]));
             res->end(j.dump());
         });
     }
@@ -51,10 +77,8 @@ public:
                 std::cout << "get all task was aborted";
             });
             nlohmann::json allTasks;
-            nlohmann::json task;
             for(std::pair<const int,Task *> &p : db){
-                to_json(task,*(p.second));
-                allTasks.update(task);
+                allTasks.update(TaskMangment::wrap_task_by_id(*(p.second)));
             }
             res->end(allTasks.dump());
         });
@@ -71,7 +95,7 @@ public:
                     nlohmann::json j = nlohmann::json::parse(body);
                     Task* t = new Task(id);
                     if(j.contains("title")) t->title = j["title"];
-                    if(j.contains("descryption")) t->descryption = j["descyption"];
+                    if(j.contains("descryption")) t->descryption = j["descryption"];
                     if(j.contains("status")) t->status = j["status"];
                     delete(db[id]);
                     db[id] = t;
@@ -91,7 +115,48 @@ public:
             res->writeStatus("200 ok")->end("Deleted succssfully");
         });
     }
-    
+    void filterByStatus(std::string routeHandler,std::unordered_map<int,Task *> &db){
+        app->get(routeHandler,[&db](uWS::HttpResponse<false> *res,uWS::HttpRequest * req){
+            res->onAborted([](){
+                std::cout << "filter by status was aborted";
+            });
+            std::unordered_map<std::string,std::string> queries;
+            TaskMangment::parseQuery(req->getQuery(),queries);
+            nlohmann::json j;
+            std::unordered_map<int, Task*>::iterator task = db.begin();
+            to_json(j,*(task->second));
+            for(std::pair<std::string,std::string> query: queries){
+                    if(!(j.contains(query.first))){
+                        res->end("Invalid query key");
+                        return;
+                    }
+            }
+            nlohmann::json finalJson;
+            for(;task != db.end();task++){
+                to_json(j,*(task->second));
+                bool filtered = true;
+                for(std::pair<const std::string,std::string> &query : queries){
+                    if(j[query.first] != query.second){
+                        filtered = false;
+                        break;
+                    }
+                }
+                if(filtered){
+                    to_json(j,*(task->second));
+                    finalJson.update(TaskMangment::wrap_task_by_id(*(task->second)));
+                }
+            }
+            res->end(finalJson.dump());
+        });
+    }
+    void run(int portnumber){
+        app->listen(portnumber,[portnumber](auto * token ){
+            if(token){
+                std::cout << "server listening on" << portnumber << std::endl;
+            }
+        });
+        app->run();
+    }
 };
 
 #endif

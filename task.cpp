@@ -14,15 +14,7 @@ struct Task {
     Task(int id):id(id),title(""),descryption(""),status(""){}
 };
 
-void to_json(nlohmann::json &j,Task & t){
-    j = nlohmann::json{
-        {t.id,{{"id",t.id},
-        {"title",t.title},
-        {"descryption",t.descryption},
-        {"status",t.status}}}
-    };
-}
-void to_json(nlohmann::json &j,Task &t,int val){
+void to_json(nlohmann::json &j,Task &t){
     j = nlohmann::json{
         {"id",t.id},
         {"title",t.title},
