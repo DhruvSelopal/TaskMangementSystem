@@ -48,12 +48,17 @@ public:
             res->onData([res,&db,&id,body=std::string{}](std::string_view chunk,bool isLast) mutable{
                 body.append(chunk);
                 if(isLast){
-                    nlohmann::json j = nlohmann::json::parse(body);
-                    Task* t = new Task(id);
-                    if(j.contains("title")) t->title = j["title"];
-                    if(j.contains("descryption")) t->descryption = j["descryption"];
-                    if(j.contains("status")) t->status = j["status"];
-                    db[id] = t;
+                    nlohmann::json j;
+                    try{
+                        j = nlohmann::json::parse(body);
+                        Task* t = new Task(id);
+                        if(j.contains("title")) t->title = j["title"];
+                        if(j.contains("descryption")) t->descryption = j["descryption"];
+                        if(j.contains("status")) t->status = j["status"];
+                        db[id] = t;
+                    } catch(std::exception &e){
+                        std::cout << "standard error : " << e.what() << std::endl;
+                    }
                     id++;
                     res->writeStatus("200")->end("object created successfully");
                 }
